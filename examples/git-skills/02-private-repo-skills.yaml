@@ -1,0 +1,55 @@
+# Example: Agent with Skills from a Private Git Repository
+#
+# This agent loads skills from a private GitHub repository using a
+# Personal Access Token for authentication.
+#
+# Prerequisites:
+#   1. Create a GitHub PAT with repo read access
+#   2. Create the Secret with your token
+#   3. Apply the Agent
+#
+# Usage:
+#   # Create the secret first:
+#   kubectl create secret generic git-credentials \
+#     --from-literal=token=ghp_your_token_here
+#
+#   kubectl apply -f 02-private-repo-skills.yaml
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: git-credentials
+type: Opaque
+stringData:
+  token: "${GITHUB_TOKEN}"  # Replace with your GitHub PAT
+---
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: private-skills-agent
+spec:
+  type: Declarative
+  declarative:
+    modelConfig: gpt4o
+    systemMessage: |
+      You are a team operations agent with access to internal runbooks
+      and procedures. Use your skills to find and follow the correct
+      procedures for any operational task.
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: kagent-tools
+          toolNames:
+            - kubectl_get
+            - kubectl_describe
+  skills:
+    gitAuthSecretRef:
+      name: git-credentials
+    gitRefs:
+      - url: https://github.com/myorg/internal-runbooks.git
+        ref: main
+      - url: https://github.com/myorg/sre-playbooks.git
+        ref: v2.0
+        path: kubernetes
+        name: k8s-playbooks

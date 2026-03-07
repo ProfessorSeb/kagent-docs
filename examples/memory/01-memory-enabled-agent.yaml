@@ -1,0 +1,42 @@
+# Example: Agent with Long-Term Memory
+#
+# This agent remembers information across conversations using vector
+# similarity search. It automatically saves key facts and retrieves
+# relevant context before responding.
+#
+# Try it:
+#   1. Tell the agent "My team uses PostgreSQL and deploys to us-east-1"
+#   2. End the conversation
+#   3. Start a new conversation and ask "What database does my team use?"
+#   4. The agent will recall the information from memory
+#
+# Prerequisites:
+#   - PostgreSQL with pgvector extension (for memory storage)
+#   - OpenAI API key (for embeddings)
+#
+# Usage:
+#   kubectl apply -f 01-memory-enabled-agent.yaml
+
+---
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: memory-agent
+spec:
+  type: Declarative
+  declarative:
+    modelConfig: gpt4o
+    systemMessage: |
+      You are a helpful assistant with long-term memory. You remember
+      important details from previous conversations.
+
+      When users share preferences, team information, or project details,
+      you'll automatically remember them for future conversations.
+
+      If a user asks about something you discussed before, check your
+      memory for relevant context.
+    memory:
+      enabled: true
+      embeddingProvider:
+        type: OpenAI
+        model: text-embedding-3-small
