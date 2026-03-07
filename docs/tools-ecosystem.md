@@ -1,0 +1,269 @@
+# Tools Ecosystem
+
+kagent provides a rich set of built-in tools through MCP (Model Context Protocol) servers, plus the ability to add custom tools. All tools are integrated via the kagent-tools package.
+
+## Built-in Tool Categories
+
+### Kubernetes (`kubectl`)
+
+Comprehensive cluster management tools:
+
+| Tool | Description |
+|------|-------------|
+| `kubectl_get` | Query resources (pods, deployments, services, etc.) |
+| `kubectl_describe` | Detailed resource information |
+| `kubectl_scale` | Scale deployments and statefulsets |
+| `kubectl_patch` | Patch resources with strategic merge |
+| `kubectl_label` | Add/remove labels |
+| `kubectl_annotate` | Add/remove annotations |
+| `kubectl_delete` | Delete resources |
+| `kubectl_apply` | Apply YAML manifests |
+| `kubectl_exec` | Execute commands in pods |
+| `kubectl_logs` | Retrieve pod logs |
+| `kubectl_events` | Get cluster events |
+| `kubectl_connectivity_test` | Test service connectivity |
+
+### Helm
+
+Package management for Kubernetes:
+
+| Tool | Description |
+|------|-------------|
+| `helm_list` | List installed releases |
+| `helm_install` | Install a chart |
+| `helm_upgrade` | Upgrade a release |
+| `helm_uninstall` | Remove a release |
+| `helm_repo_add` | Add chart repository |
+| `helm_repo_update` | Update chart repositories |
+
+### Istio
+
+Service mesh management:
+
+| Tool | Description |
+|------|-------------|
+| `istio_proxy_status` | Check proxy synchronization status |
+| `istio_proxy_config` | Inspect proxy configuration |
+| `istio_install` | Install Istio |
+| `istio_manifest_generate` | Generate installation manifests |
+| `istio_analyze` | Analyze Istio configuration for issues |
+| `istio_version` | Get Istio version info |
+| `istio_remote_clusters` | Manage remote cluster configuration |
+| `istio_waypoint` | Manage waypoint proxies |
+
+### Argo Rollouts
+
+Progressive delivery:
+
+| Tool | Description |
+|------|-------------|
+| `argo_rollouts_verify` | Verify controller is running |
+| `argo_rollouts_check_plugins` | Check installed plugins |
+| `argo_rollouts_promote` | Promote a rollout |
+| `argo_rollouts_pause` | Pause a rollout |
+| `argo_rollouts_set_image` | Update rollout image |
+
+### Cilium
+
+CNI networking:
+
+| Tool | Description |
+|------|-------------|
+| `cilium_status` | Check Cilium status |
+| `cilium_install` | Install Cilium |
+| `cilium_upgrade` | Upgrade Cilium |
+| `cilium_clustermesh` | Manage cluster mesh |
+| `cilium_bgp_peers` | View BGP peers |
+| `cilium_bgp_routes` | View BGP routes |
+
+### Prometheus
+
+Monitoring and metrics:
+
+| Tool | Description |
+|------|-------------|
+| `prometheus_query` | Execute instant PromQL queries |
+| `prometheus_query_range` | Execute range PromQL queries |
+| `prometheus_labels` | Discover available labels |
+| `prometheus_targets` | List scrape targets and status |
+
+### Grafana
+
+Dashboard and alert management:
+
+| Tool | Description |
+|------|-------------|
+| `grafana_orgs` | Manage organizations |
+| `grafana_dashboards` | List/manage dashboards |
+| `grafana_alerts` | View/manage alerts |
+| `grafana_datasources` | Manage data sources |
+
+### Utilities
+
+| Tool | Description |
+|------|-------------|
+| `datetime_format` | Format timestamps |
+| `datetime_parse` | Parse date strings |
+| `shell_execute` | Run shell commands |
+| `docs_query` | Query product documentation |
+
+## Agent Built-in Tools
+
+These tools are automatically available to every agent (no configuration needed):
+
+| Tool | Description |
+|------|-------------|
+| `ask_user` | Pose questions to users with optional choices |
+| `SkillsTool` | Discover and load skills |
+| `BashTool` | Execute shell commands (Go ADK) |
+| `ReadFile` | Read files with pagination (Go ADK) |
+| `WriteFile` | Write file content (Go ADK) |
+| `EditFile` | Edit files via string replacement (Go ADK) |
+
+## Configuring Tools on an Agent
+
+### Single MCP Server
+
+```yaml
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: k8s-agent
+spec:
+  type: Declarative
+  declarative:
+    modelConfig: my-model
+    systemMessage: "You manage Kubernetes clusters."
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: kagent-tools
+          toolNames:
+            - kubectl_get
+            - kubectl_describe
+            - kubectl_logs
+            - kubectl_events
+```
+
+### Multiple MCP Servers
+
+```yaml
+tools:
+  - type: McpServer
+    mcpServer:
+      name: kagent-tools
+      toolNames:
+        - kubectl_get
+        - kubectl_describe
+        - helm_list
+        - helm_upgrade
+  - type: McpServer
+    mcpServer:
+      name: my-custom-server
+      toolNames:
+        - custom_tool_1
+        - custom_tool_2
+```
+
+### With Tool Approval
+
+```yaml
+tools:
+  - type: McpServer
+    mcpServer:
+      name: kagent-tools
+      toolNames:
+        - kubectl_get
+        - kubectl_describe
+        - kubectl_delete
+        - kubectl_apply
+      requireApproval:
+        - kubectl_delete
+        - kubectl_apply
+```
+
+### Agent as Tool (A2A)
+
+Use another agent as a tool via the A2A protocol:
+
+```yaml
+tools:
+  - type: Agent
+    agent:
+      name: specialist-agent
+      namespace: default  # Optional, defaults to same namespace
+```
+
+## Community / Contrib MCP Servers
+
+Additional MCP servers available in `contrib/tools/`:
+
+| Server | Description |
+|--------|-------------|
+| **GitHub MCP Server** | GitHub Copilot MCP server with tools for issues, PRs, repos, actions, code security, and more |
+| **k8sgpt MCP Server** | K8sGPT integration for AI-powered Kubernetes diagnostics |
+| **Grafana MCP** | Extended Grafana integration |
+
+### GitHub MCP Server Example
+
+Deploy the GitHub MCP server and connect it to your agent:
+
+```yaml
+# Deploy the GitHub MCP server (via Helm)
+# helm install github-mcp contrib/tools/github-mcp-server \
+#   --set github.token=ghp_xxxx
+
+---
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: github-mcp
+spec:
+  protocol: SSE
+  url: http://github-mcp-server:8080/sse
+  headersFrom:
+    - secretRef:
+        name: github-token
+      key: Authorization
+---
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: github-agent
+spec:
+  type: Declarative
+  declarative:
+    modelConfig: gpt4o
+    systemMessage: "You help manage GitHub repositories, issues, and PRs."
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: github-mcp
+          toolNames:
+            - list_issues
+            - create_issue
+            - list_pull_requests
+            - create_pull_request
+          requireApproval:
+            - create_issue
+            - create_pull_request
+```
+
+## Read-Only Mode
+
+kagent-tools supports a read-only mode for safer operation:
+
+```yaml
+# In Helm values
+kagentTools:
+  readOnly: true  # Disables all write/mutating operations
+```
+
+## Observability
+
+kagent-tools exposes Prometheus metrics for monitoring:
+- Tool invocation counts
+- Tool execution duration
+- Error rates by tool
+
+Configure a ServiceMonitor to scrape these metrics in your observability stack.
