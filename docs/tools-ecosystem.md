@@ -194,6 +194,61 @@ tools:
       namespace: default  # Optional, defaults to same namespace
 ```
 
+## Community / Contrib MCP Servers
+
+Additional MCP servers available in `contrib/tools/`:
+
+| Server | Description |
+|--------|-------------|
+| **GitHub MCP Server** | GitHub Copilot MCP server with tools for issues, PRs, repos, actions, code security, and more |
+| **k8sgpt MCP Server** | K8sGPT integration for AI-powered Kubernetes diagnostics |
+| **Grafana MCP** | Extended Grafana integration |
+
+### GitHub MCP Server Example
+
+Deploy the GitHub MCP server and connect it to your agent:
+
+```yaml
+# Deploy the GitHub MCP server (via Helm)
+# helm install github-mcp contrib/tools/github-mcp-server \
+#   --set github.token=ghp_xxxx
+
+---
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: github-mcp
+spec:
+  protocol: SSE
+  url: http://github-mcp-server:8080/sse
+  headersFrom:
+    - secretRef:
+        name: github-token
+      key: Authorization
+---
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: github-agent
+spec:
+  type: Declarative
+  declarative:
+    modelConfig: gpt4o
+    systemMessage: "You help manage GitHub repositories, issues, and PRs."
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: github-mcp
+          toolNames:
+            - list_issues
+            - create_issue
+            - list_pull_requests
+            - create_pull_request
+          requireApproval:
+            - create_issue
+            - create_pull_request
+```
+
 ## Read-Only Mode
 
 kagent-tools supports a read-only mode for safer operation:

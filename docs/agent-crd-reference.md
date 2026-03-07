@@ -150,7 +150,7 @@ kind: ModelConfig
 metadata:
   name: <name>
 spec:
-  provider: OpenAI | Anthropic | Google | AzureOpenAI | Bedrock | Ollama
+  provider: OpenAI | Anthropic | Gemini | GeminiVertexAI | AnthropicVertexAI | AzureOpenAI | Bedrock | Ollama
   model: <model-name>
   apiKeySecretRef:
     name: <Secret-name>
@@ -265,4 +265,42 @@ spec:
         path: k8s-ops
     gitAuthSecretRef:
       name: git-token
+```
+
+## RemoteMCPServer Resource
+
+```yaml
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: <name>
+spec:
+  protocol: SSE | STREAMABLE_HTTP
+  url: <string>                        # MCP server endpoint URL
+  headersFrom:                         # Auth headers from Secrets
+    - secretRef:
+        name: <Secret-name>
+      key: <header-name>              # e.g., "Authorization"
+status:
+  discoveredTools: [<string>]          # Auto-populated by controller
+```
+
+## ModelProviderConfig Resource
+
+```yaml
+apiVersion: kagent.dev/v1alpha2
+kind: ModelProviderConfig
+metadata:
+  name: <name>
+spec:
+  provider: OpenAI | Anthropic | Gemini | GeminiVertexAI | AnthropicVertexAI | AzureOpenAI | Bedrock | Ollama
+  apiKeySecretRef:
+    name: <Secret-name>
+    key: <key>
+  # TLS configuration (optional)
+  tls:
+    caCert: <string>                   # Custom CA certificate
+status:
+  discoveredModels: [<string>]         # Auto-populated by querying provider
+  ready: <bool>
 ```

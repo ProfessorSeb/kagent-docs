@@ -120,7 +120,73 @@ Standard protocol for tool integration. MCP servers expose tools that agents can
 |----------|--------------|
 | OpenAI | API key via Secret |
 | Anthropic | API key via Secret |
-| Google Vertex AI | Service account credentials |
+| Gemini | API key via Secret |
+| Gemini (Vertex AI) | Service account credentials |
+| Anthropic (Vertex AI) | Service account credentials |
 | Azure OpenAI | Endpoint + API key |
 | AWS Bedrock | AWS credentials |
 | Ollama | Base URL (local/remote) |
+
+## Pre-Built Agents
+
+kagent ships with 10 ready-to-use agent Helm charts:
+
+| Agent | Purpose |
+|-------|---------|
+| `k8s` | General Kubernetes operations |
+| `helm` | Helm chart management |
+| `istio` | Istio service mesh management |
+| `promql` | PromQL query assistance |
+| `observability` | Monitoring and observability |
+| `argo-rollouts` | Progressive delivery with Argo |
+| `kgateway` | Gateway API management |
+| `cilium-policy` | Cilium network policy |
+| `cilium-manager` | Cilium CNI management |
+| `cilium-debug` | Cilium debugging |
+
+Install any pre-built agent via Helm:
+
+```bash
+helm install k8s-agent kagent/agents/k8s \
+  --set modelConfig=my-model
+```
+
+## Additional CRDs
+
+### ModelProviderConfig
+
+Auto-discovers available models from LLM provider endpoints:
+
+```yaml
+apiVersion: kagent.dev/v1alpha2
+kind: ModelProviderConfig
+metadata:
+  name: openai-provider
+spec:
+  provider: OpenAI
+  apiKeySecretRef:
+    name: openai-key
+    key: api-key
+```
+
+The controller queries the provider's model listing API and populates `status.discoveredModels`, enabling the UI to present a model selector.
+
+### RemoteMCPServer
+
+Registers external MCP tool servers:
+
+```yaml
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: github-mcp
+spec:
+  protocol: SSE  # or STREAMABLE_HTTP
+  url: http://github-mcp-server:8080/sse
+  headersFrom:
+    - secretRef:
+        name: github-token
+      key: Authorization
+```
+
+The controller connects, discovers available tools, and stores them in `status.discoveredTools`.
