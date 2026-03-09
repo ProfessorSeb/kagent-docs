@@ -16,6 +16,20 @@ Comprehensive documentation for [kagent](https://github.com/kagent-dev/kagent) â
 | [Tools Ecosystem](docs/tools-ecosystem.md) | Built-in tools: Kubernetes, Helm, Istio, and more |
 | [Agent CRD Reference](docs/agent-crd-reference.md) | Full Custom Resource Definition reference |
 
+## Solo Enterprise for kagent (Enterprise Features)
+
+| Document | Description |
+|----------|-------------|
+| [Enterprise Overview](docs/enterprise/overview.md) | Enterprise vs open source, architecture, Helm charts, pre-built agents |
+| [Security & Access Control](docs/enterprise/security.md) | OIDC authentication, OBO tokens, AccessPolicy, RBAC, agentgateway |
+| [Multicluster Federation](docs/enterprise/multicluster.md) | Management-agent relay architecture, tunnel, cluster registration |
+| [Observability](docs/enterprise/observability.md) | Built-in OTel pipeline, distributed tracing, metrics, ClickHouse |
+| [Enterprise UI](docs/enterprise/enterprise-ui.md) | Dashboard, agent chat, tracing visualization, inventory, user management |
+| [Agent Frameworks (BYO)](docs/enterprise/agent-frameworks.md) | BYO agents with ADK, CrewAI, LangGraph |
+| [Model Providers](docs/enterprise/model-providers.md) | OpenAI, Anthropic, Azure, Gemini, Vertex AI, Bedrock, Ollama |
+| [Tools & MCP Servers](docs/enterprise/tools-mcp-servers.md) | Built-in tools, K8s services as MCP, remote MCP, custom servers |
+| [Installation & Operations](docs/enterprise/installation.md) | Install, upgrade, debug, uninstall, licensing |
+
 ## About kagent
 
 kagent is a CNCF project that enables development, deployment, and management of AI agents within Kubernetes environments. It provides:
